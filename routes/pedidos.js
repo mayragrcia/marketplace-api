@@ -1,12 +1,28 @@
 const express = require('express');
 const router = express.Router();
+const mysql = require('../mysql').pool;
 
 //RETORNA TODOS OS PEDIDOS
 router.get('/', (req, res, next) => {
 
-    res.status(200).send({
-      mensagem: 'Retorna os pedidos'  
-    });
+    mysql.getConnection((error, conn) =>{
+
+        if(error){
+            return res.status(500).send({error: error});
+        }
+
+        conn.query(
+            'SELECT * FROM pedidos;',
+            (error, resultado, field) => {
+                if(error){
+                    return res.status(500).send({error: error});
+                }
+                return res.status(200).send({
+                    response: resultado
+                });
+            }
+        )
+    })
 });
 
 //INSERE UM PEDIDO

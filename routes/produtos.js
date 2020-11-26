@@ -92,7 +92,7 @@ router.patch('/', (req, res, next) => {
             `UPDATE produtos 
                 SET     nome         = ?,
                         preco        = ?,
-                        quantidade   = ?,
+                        quantidade   = ?
                 WHERE   id_produto   = ?;`,
             [                
                 req.body.nome, 
