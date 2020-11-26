@@ -27,37 +27,79 @@ router.get('/', (req, res, next) => {
 
 //INSERE UM PEDIDO
 router.post('/', (req, res, next) => {
+    
     const pedido = {
         id_produto: req.body.id_produto, 
         quantidade: req.body.quantidade
     }
-    res.status(201).send({
-        mensagem: 'O pedido foi criado',
-        pedidoCriado: pedido
-    });
+
+    mysql.getConnection((error, conn) => {
+        if(error){
+            return res.status(500).send({
+                error: error
+            });
+        }
+        conn.query(
+            'INSERT INTO pedidos (id_produto, quantidade) VALUES (?,?)',
+            [req.body.id_produto, req.body.quantidade], 
+            (error, resultado, field) => {
+                conn.release();
+    
+                if(error){
+                    res.status(500).send({
+                        error: error, 
+                    });
+                }
+                res.status(201).send({
+                    mensagem: 'Produto inserido com sucesso'
+                });
+            }
+        )
+    })
 });
 
 //RETORNA OS DADOS DE UM PEDIDO
 router.get('/:id_pedido', (req, res, next) => {
-    const id = req.params.id_pedido; 
-    res.status(200).send({
-        mensagem: "Detalhes do Pedido",
-        id: id
-    });
+
+    mysql.getConnection((error, conn) => {
+        if(error){
+            return res.status(500).send({error: error});
+        }
+
+        conn.query(
+            'SELECT * FROM pedidos WHERE id_pedido = ?;',
+            (req.params.id_pedido),
+            (error, resultado, field) => {
+                conn.release(); 
+                if(error){
+                    return res.status(500).send({error: error});
+                }
+                return res.status(201).send({
+                    response: resultado
+                });
+            }
+        )
+    })
 }); 
 
-// //ALTERA UM PEDIDO
-// router.patch('/', (req, res, next) => {
-//     res.status(201).send({
-//         mensagem: 'usando o patch dentro da rota de PEDIDOS'
-//     });
-// });
 
-//EXCLUI UM PEDIDO
+//CANCELAR UM PEDIDO
 router.delete('/', (req, res, next) => {
-    res.status(201).send({
-        mensagem: 'Pedido excluido'
-    });
+    mysql.getConnection((error, conn) => {
+        if(error){ return res.status(500).send({error: error})}
+        conn.query(
+            'DELETE FROM pedidos WHERE id_pedido = ?',
+            [req.body.id_pedido],
+            (error, resultado, field) => {
+                conn.release();
+                if(error){ return res.status(500).send({error: error})}
+
+                res.status(202).send({
+                    mensagem: 'Pedido cancelado com sucesso'
+                })
+            }
+        )
+    })
 });
 
 module.exports = router; 
